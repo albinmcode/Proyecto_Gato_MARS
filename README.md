@@ -1,1 +1,5 @@
-# Proyecto_-_MARS
+# Proyecto_Gato_MARS
+
+## Integrantes:
+* Albin Monge Arias, C35000
+*
