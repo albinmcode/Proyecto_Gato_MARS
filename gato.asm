@@ -41,7 +41,7 @@
       bge $t2, 1004, ret
       j vertical
       
-  casillas: #dirección de memoria de las casillas a marcar, indexable luego con (número de casilla * dirección inicial del space casilla)
+  casillas: #direcciï¿½n de memoria de las casillas a marcar, indexable luego con (nï¿½mero de casilla * 4) + direcciï¿½n inicial del space casilla.
 		addi $t0, $a0, 136 #primera linea de pixeles de seleccion
 		addi $t2, $a0, 776 #ultima linea
 		la $t3, casilla
@@ -49,7 +49,7 @@
 		new_line: 
 		addi $t1, $t0, 40
 		line:
-		addi $t3, $t3, 4 #posición 0 ignorada para facilituar futura indexación
+		addi $t3, $t3, 4 #posiciï¿½n 0 ignorada para facilituar futura indexaciï¿½n
 		sw $t0, ($t3) #se guarda la direccion de memoria de cada campo marcable
 		addi $t0, $t0, 20
 		ble $t0, $t1, line
@@ -60,7 +60,7 @@
 		
   juego:
   	perfil: #se le pide a cada jugador escoger un color de dos disponibles (opcional)
-  	entrada: #numero de casilla, codificar a dirección de memoria 
+  	entrada: #numero de casilla, codificar a direcciï¿½n de memoria 
   	valido: #revizar casilla si esta disponible
   	gane: #definir si hay ganador, ir a "ret" o a "continuar" *
   	continuar: #reviza si hay al menos una casilla disponible, ir a "ret" o a "entrada"
