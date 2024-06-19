@@ -1,13 +1,12 @@
 .data
 	display: .space 1024
-	casilla: .space 40
+	casilla: .space 36
 	
 .text
 	main:
 		li $a1, 0xffffff
 		jal crear_tablero
-		la $a0, display($t0)
-		jal casillas 
+		jal casillas #dirección de memoria de las casillas a marcar
 		jal juego
 		jal resultado
 		j end
@@ -41,22 +40,25 @@
       bge $t2, 1004, ret
       j vertical
       
-  casillas: #dirección de memoria de las casillas a marcar, indexable luego con (número de casilla * dirección inicial del space casilla)
-		addi $t0, $a0, 136 #primera linea de pixeles de seleccion
-		addi $t2, $a0, 776 #ultima linea
-		la $t3, casilla
+  casillas:
+  	li $a1, 0x8aff33 
+		li $t0, 136 #primera linea
+		li $t2, 776 #ultima linea
 		
-		new_line: 
-		addi $t1, $t0, 40
-		line:
-		addi $t3, $t3, 4 #posición 0 ignorada para facilituar futura indexación
-		sw $t0, ($t3) #se guarda la direccion de memoria de cada campo marcable
+		new_line: addi $t1, $t0, 40
+		mark:
+		sw $a1, display($t0)
+		addi $t3, $t0, 4
+		sw $a1, display($t3)
+		addi $t3, $t3, 60
+		sw $a1, display($t3)
+		addi $t3, $t3, 4
+		sw $a1, display($t3)
 		addi $t0, $t0, 20
-		ble $t0, $t1, line
-		
+		ble $t0, $t1, mark
 		addi $t0, $t0, 260
-		bgt $t0, $t2, ret
-		j new_line
+		ble $t0, $t2, new_line
+		j ret
 		
   juego:
   	perfil: #se le pide a cada jugador escoger un color de dos disponibles (opcional)
