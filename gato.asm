@@ -1,12 +1,15 @@
 .data
 	display: .space 1024
 	casilla: .space 40
+	jugador_1: .asciiz "Color del primer jugador (num [0, 16M]): "
+	jugador_2: .asciiz "Color del segundo jugador (num [0, 16M]): "
+	endl: .asciiz "\n"
 	
 .text
 	main:
 		li $a1, 0xffffff
 		jal crear_tablero
-		la $a0, display($t0)
+		la $a0, display($zero)
 		jal casillas 
 		jal juego
 		jal resultado
@@ -60,6 +63,21 @@
 		
   juego:
   	perfil: #se le pide a cada jugador escoger un color de dos disponibles (opcional)
+  		la $a0, jugador_1
+  		li $v0, 4
+  		syscall
+  		li $v0, 5
+  		syscall
+  		move $s1, $v0
+  		la $a0, jugador_2
+  		li $v0, 4
+  		syscall
+  		li $v0, 5
+  		syscall
+  		move $s2, $v0
+  		bne $s2, $s1, entrada #cada jugador debe tener un color distinto
+  		j perfil
+  	
   	entrada: #numero de casilla, codificar a direcci�n de memoria 
   	valido: #revizar casilla si esta disponible
   	gane: #definir si hay ganador, ir a "ret" o a "continuar" *
