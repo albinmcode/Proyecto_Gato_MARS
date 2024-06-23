@@ -62,19 +62,19 @@
 		j new_line
 		
   juego:
-  	perfil: #se le pide a cada jugador escoger un color de dos disponibles (opcional)
+  	perfil: #se le pide a cada jugador escoger un color (numero decimal para ser interpretado en hexadecimal)
   		la $a0, jugador_1
   		li $v0, 4
   		syscall
   		li $v0, 5
   		syscall
-  		move $s1, $v0
+  		move $s1, $v0 #color de jugador_1 en s1
   		la $a0, jugador_2
   		li $v0, 4
   		syscall
   		li $v0, 5
   		syscall
-  		move $s2, $v0
+  		move $s2, $v0 #color de jugador_2 en s2
   		bne $s2, $s1, entrada #cada jugador debe tener un color distinto
   		j perfil
   	
