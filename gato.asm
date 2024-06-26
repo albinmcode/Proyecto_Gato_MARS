@@ -5,7 +5,7 @@
 	colores: .asciiz "Colores a escoger:\n1) Cian\n2) Amarrillo\n3) Morado\n4) Naranja\n"
 	j1: .asciiz "Jugador 1: "
 	j2: .asciiz "Jugador 2: "
-	seleccion: .asciiz "\nEscoja un n�mero de casilla [1, 9]: "
+	seleccion: .asciiz "\nEscoja un numero de casilla [1, 9]: "
 	
 .text
 	main:
@@ -91,8 +91,31 @@
   			add $t2, $t1, $t0   
   			lw $v1, 0($t2) # codigo del color escogido
   			j ret
-
+        
   	entrada: #numero de casilla, codificar a direcci�n de memoria
+  		move $a1, $s1 #asignacion al inicio de un turno especifico(funcion de rondas)
+  		sw $a1, display($zero)
+  		#lw $t0, 0xffff0004 #entrada de teclado
+  		la $a0, seleccion
+  		li $v0, 4
+  		syscall
+  		li $v0, 5
+  		syscall
+  		mul $t0, $v0, 4 
+  		lw $t1, casilla($t0)
+  		validez:
+  			lw $t0, ($t1) #color actual de la casilla
+  			bne $t0, 0xffffff, entrada #si tiene un color distinto al de fondo se vuelve a pedir otra posicion
+  			addi $s3, $s3, 1 #contador de casillas marcadas
+  		marcar:
+  			sw $a1, ($t1)
+  			addi $t1, $t1, 4
+  			sw $a1, ($t1)
+				addi $t1, $t1, 60
+  			sw $a1, ($t1)
+  			addi $t1, $t1, 4
+  			sw $a1, ($t1)  		
+
   	gane: #definir si hay ganador, ir a "ret" o a "continuar" *
   	continuar: #reviza si hay al menos una casilla disponible, ir a "ret" o a "entrada"
 
