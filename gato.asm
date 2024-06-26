@@ -1,14 +1,18 @@
 .data
 	display: .space 1024
 	casilla: .space 40
-	seleccion: .asciiz "Escoja un número de casilla [1, 9]: "
+	colores_hex: .word 0x00ffb6, 0xfff700, 0x8300ff, 0xff2a00 #(incluir cuantos se desee)
+	colores: .asciiz "Colores a escoger:\n1) Cian\n2) Amarrillo\n3) Morado\n4) Naranja\n"
+	j1: .asciiz "Jugador 1: "
+	j2: .asciiz "Jugador 2: "
+	seleccion: .asciiz "\nEscoja un numero de casilla [1, 9]: "
 	
 .text
 	main:
 		li $a1, 0xffffff
 		jal crear_tablero
 		la $s0, display($zero)
-		jal casillas 
+		jal casillas
 		jal juego
 		jal resultado
 		j end
@@ -60,7 +64,34 @@
 		j new_line
 		
   juego:
-  	perfil: #se le pide a cada jugador escoger un color de dos disponibles (opcional)
+  	perfil: #se le pide a cada jugador escoger un color de los disponibles
+  		move $t3, $ra #conservar el retorno a main
+  		la $t1, colores_hex
+  		la $a0, colores #msg colores disponinles
+  		li $v0, 4
+  		syscall
+  		
+  		la $a0, j1 #primer color 
+  		jal selec_color
+  		move $s1, $v1
+  		segundo: la $a0, j2 #segundo color 
+  		jal selec_color
+  		beq $s1, $t0, segundo #cada jugador debe tener un color distinto
+  		move $s2, $v1 
+  		move $ra, $t3
+  		j ret
+  		
+  		selec_color:
+  			li $v0, 4
+  			syscall
+  			li $v0, 5
+  			syscall
+  			sub $t0, $v0, 1
+  			mul $t0, $t0, 4
+  			add $t2, $t1, $t0   
+  			lw $v1, 0($t2) # codigo del color escogido
+  			j ret
+        
   	entrada: #numero de casilla, codificar a direcciï¿½n de memoria
   		move $a1, $s1 #asignacion al inicio de un turno especifico(funcion de rondas)
   		sw $a1, display($zero)
@@ -84,7 +115,7 @@
   			sw $a1, ($t1)
   			addi $t1, $t1, 4
   			sw $a1, ($t1)  		
-  	
+
   	gane: #definir si hay ganador, ir a "ret" o a "continuar" *
   	continuar: #reviza si hay al menos una casilla disponible, ir a "ret" o a "entrada"
 
