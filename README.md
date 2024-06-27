@@ -1,5 +1,5 @@
 # Proyecto_Gato_MARS
 
 ## Integrantes:
-* Albin Monge Arias, C35000
-*
+* Albin Monge, C35000
+* Jorge Salas, C37130
