@@ -2,7 +2,7 @@
 	display: .space 1024
 	casilla: .space 40
 	colores_hex: .word 0x00ffb6, 0xfff700, 0x8300ff, 0xff2a00
-	colores: .asciiz "Colores a escoger:\n1) Cian\n2) Amarillo\n3) Morado\n4) Naranja\n"
+	colores: .asciiz "Colores a escoger:\n1) Cian\n2) Amarillo\n3) Morado\n4) Rojo\n"
 	j1: .asciiz "Jugador 1: "
 	j2: .asciiz "Jugador 2: "
 	seleccion: .asciiz "\nEscoja un numero de casilla [1, 9]: "
