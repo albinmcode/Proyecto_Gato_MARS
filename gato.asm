@@ -6,8 +6,8 @@
 	j1: .asciiz "Jugador 1: "
 	j2: .asciiz "Jugador 2: "
 	seleccion: .asciiz "\nEscoja un numero de casilla [1, 9]: "
-	resultado_msg: .asciiz "El resultado es: "
-	empate_msg: .asciiz "Es un empate!\n"
+	resultado_msg: .asciiz "\nEl resultado es: "
+	empate_msg: .asciiz "Empate\n"
 	ganador_msg: .asciiz "El ganador es: Jugador "
 	turno_j1: .asciiz "\nTurno del Jugador 1\n"
 	turno_j2: .asciiz "\nTurno del Jugador 2\n"
@@ -175,24 +175,15 @@ gane:
 verificar_ganador:
 	li $v0, 0  # Inicializar v0 a 0 (no hay ganador)
 
-	# Obtener el color del último movimiento
-	beq $s4, $zero, verificar_jugador2
-	move $t4, $s1  # Color del Jugador 1
-	j verificar_ganador_common
-
-verificar_jugador2:
-	move $t4, $s2  # Color del Jugador 2
-
-verificar_ganador_common:
 	# Verificar filas
 	la $t0, casilla
 	li $t1, 0
 fila_loop:
 	add $t2, $t0, $t1
 	lw $a0, 0($t2)
-	addi $t3, $t2, 4
+	addi $t3, $t2, 12
 	lw $a1, 0($t3)
-	addi $t3, $t3, 4
+	addi $t3, $t3, 12
 	lw $a2, 0($t3)
 	beq $a0, $a1, fila_check1
 	j next_fila
@@ -211,9 +202,9 @@ next_fila:
 columna_loop:
 	add $t2, $t0, $t1
 	lw $a0, 0($t2)
-	addi $t3, $t2, 12
+	addi $t3, $t2, 4
 	lw $a1, 0($t3)
-	addi $t3, $t3, 12
+	addi $t3, $t3, 4
 	lw $a2, 0($t3)
 	beq $a0, $a1, columna_check1
 	j next_columna
@@ -223,8 +214,8 @@ columna_check1:
 	j next_columna
 
 next_columna:
-	addi $t1, $t1, 4
-	blt $t1, 12, columna_loop
+	addi $t1, $t1, 12
+	blt $t1, 36, columna_loop
 
 	# Verificar diagonales
 	# Diagonal 1
@@ -260,19 +251,26 @@ verificar_ganador_no_ganador:
 	j ret
 
 fila_ganador:
-	beq $a0, $t4, set_ganador
+	beq $a0, $s1, set_ganador1
+	beq $a0, $s2, set_ganador2
 	j verificar_ganador_no_ganador
 
 columna_ganador:
-	beq $a0, $t4, set_ganador
+	beq $a0, $s1, set_ganador1
+	beq $a0, $s2, set_ganador2
 	j verificar_ganador_no_ganador
 
 diagonal_ganador:
-	beq $a0, $t4, set_ganador
+	beq $a0, $s1, set_ganador1
+	beq $a0, $s2, set_ganador2
 	j verificar_ganador_no_ganador
 
-set_ganador:
+set_ganador1:
 	li $v0, 1
+	j ret
+
+set_ganador2:
+	li $v0, 2
 	j ret
 
 # Subrutina para terminar el juego
