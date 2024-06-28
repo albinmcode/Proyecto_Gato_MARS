@@ -6,11 +6,11 @@
 	j1: .asciiz "Jugador 1: "
 	j2: .asciiz "Jugador 2: "
 	seleccion: .asciiz "\nEscoja un numero de casilla [1, 9]: "
-	resultado_msg: .asciiz "\nEl resultado es: "
-	empate_msg: .asciiz "Empate\n"
-	ganador_msg: .asciiz "El ganador es: Jugador "
-	turno_j1: .asciiz "\nTurno del Jugador 1\n"
-	turno_j2: .asciiz "\nTurno del Jugador 2\n"
+	resultado_msg: .asciiz "\n<//////////////>\nEl resultado es: "
+	empate_msg: .asciiz "empate!\n"
+	ganador_msg: .asciiz "ganador: Jugador "
+	turno_j1: .asciiz "\n/-----------------/\nTurno del Jugador 1"
+	turno_j2: .asciiz "\n/-----------------/\nTurno del Jugador 2"
 	turno_actual: .asciiz "Turno actual: "
 	turnos: .asciiz "Numero de turnos: "
 
@@ -20,7 +20,8 @@ main:
 	jal crear_tablero           # Crear el tablero de juego
 	la $s0, display($zero)      # Dirección base para la visualización
 	jal casillas                # Inicializar las casillas
-	jal juego                   # Iniciar el juego
+	jal juego
+	j terminar_juego                   # Iniciar el juego
 	j end                       # Terminar el programa
 
 # Subrutina para crear el tablero de juego
@@ -73,10 +74,12 @@ line:
 
 # Subrutina principal del juego
 juego:
+	move $t9, $ra
 	jal perfil                  # Seleccionar colores para los jugadores
 	li $s3, 0                   # Inicializar el número de turnos
 	move $s4, $zero             # Inicializar el turno actual (0 para Jugador 1, 1 para Jugador 2)
 	jal entrada                 # Empezar el primer turno
+	move $ra, $t9
 	j ret
 
 # Subrutina para seleccionar el perfil de los jugadores
@@ -112,6 +115,7 @@ selec_color:
 
 # Subrutina para gestionar la entrada del jugador
 entrada:
+	move $t8, $ra
 	# Mostrar turno del jugador
 	beq $s4, $zero, turno_jugador1
 	la $a0, turno_j2
@@ -156,56 +160,68 @@ marcar:
 
 	# Incrementar el número de turnos
 	addi $s3, $s3, 1
-	jal mostrar_turnos  # Mostrar el contador de turnos para depuración
 
 	# Cambiar turno
 	xori $s4, $s4, 1  # Alternar entre 0 y 1 para los turnos
 	jal gane
+	move $ra, $t9
 	j ret
 
 # Subrutina para verificar si hay un ganador o un empate
 gane:
+	move $t7, $ra
+	li $v1, 0
 	jal verificar_ganador
-	bnez $v0, terminar_juego
+	bnez $v1, acabar
 	# Si el número de turnos es 9, declarar empate
-	beq $s3, 9, terminar_juego
+	beq $s3, 9, acabar
 	j entrada            # Continuar el juego si el número de turnos es menor a 9
+	acabar: move $ra, $t7
+	j ret
 
 # Subrutina para verificar si hay un ganador
 verificar_ganador:
 	li $v0, 0  # Inicializar v0 a 0 (no hay ganador)
 
 	# Verificar filas
-	la $t0, casilla
+	li $t0, 4 # primer direccion del space casillas vacia
 	li $t1, 0
 fila_loop:
-	add $t2, $t0, $t1
-	lw $a0, 0($t2)
-	addi $t3, $t2, 12
-	lw $a1, 0($t3)
-	addi $t3, $t3, 12
-	lw $a2, 0($t3)
+	add $t2, $t0, $t1 
+	lw $a3, casilla($t2) # direccion de primera casilla de la fila
+	lw $a0, ($a3) # color primera casilla de la fila
+	beq $a0, 0xffffff, next_fila
+	addi $t2, $t2, 4
+	lw $a3, casilla($t2) # direccion de segunda casilla
+	lw $a1, ($a3) # color de segunda casilla
+	addi $t2, $t2, 4
+	lw $a3, casilla($t2) # direccion tercera casilla
+	lw $a2, ($a3) # color tercera casilla
 	beq $a0, $a1, fila_check1
 	j next_fila
 
 fila_check1:
-	beq $a1, $a2, fila_ganador
+	beq $a1, $a2, fila_ganador # fila del mismo color
 	j next_fila
 
 next_fila:
-	addi $t1, $t1, 12
-	blt $t1, 36, fila_loop
+	addi $t1, $t1, 12 # siguiente fila
+	blt $t1, 36, fila_loop 
 
 	# Verificar columnas
 	la $t0, casilla
-	li $t1, 0
+	li $t1, 4
 columna_loop:
 	add $t2, $t0, $t1
-	lw $a0, 0($t2)
-	addi $t3, $t2, 4
-	lw $a1, 0($t3)
-	addi $t3, $t3, 4
-	lw $a2, 0($t3)
+	lw $a3, ($t2)
+	lw $a0, ($a3)
+	beq $a0, 0xffffff, next_columna
+	addi $t2, $t2, 12
+	lw $a3, ($t2)
+	lw $a1, ($a3)
+	addi $t2, $t2, 12
+	lw $a3, ($t2)
+	lw $a2, ($a3)
 	beq $a0, $a1, columna_check1
 	j next_columna
 
@@ -214,17 +230,22 @@ columna_check1:
 	j next_columna
 
 next_columna:
-	addi $t1, $t1, 12
-	blt $t1, 36, columna_loop
+	addi $t1, $t1, 4
+	ble $t1, 12, columna_loop
 
 	# Verificar diagonales
 	# Diagonal 1
 	la $t0, casilla
-	lw $a0, 0($t0)
+	addi $t0, $t0, 4 # primer campo del space casilla vacio
+	lw $a3, ($t0)
+	lw $a0, ($a3)
+	beq $a0, 0xffffff, diag2 #casilla vacia, no hay combinacion
 	addi $t2, $t0, 16
-	lw $a1, 0($t2)
+	lw $a3, ($t2)
+	lw $a1, ($a3)
 	addi $t2, $t2, 16
-	lw $a2, 0($t2)
+	lw $a3, ($t2)
+	lw $a2, ($a3)
 	beq $a0, $a1, diag_check1
 	j diag2
 
@@ -234,13 +255,16 @@ diag_check1:
 
 	# Diagonal 2
 diag2:
-	la $t0, casilla
-	addi $t0, $t0, 8
-	lw $a0, 0($t0)
+	addi $t0, $t0, 8 
+	lw $a3, ($t0)
+	lw $a0, ($a3)
+	beq $a0, 0xffffff, verificar_ganador_no_ganador #casilla vacia, no hay combinacion
 	addi $t2, $t0, 8
-	lw $a1, 0($t2)
+	lw $a3, ($t2)
+	lw $a1, ($a3)
 	addi $t2, $t2, 8
-	lw $a2, 0($t2)
+	lw $a3, ($t2)
+	lw $a2, ($a3)
 	beq $a0, $a1, diag_check2
 	j verificar_ganador_no_ganador
 
@@ -266,7 +290,10 @@ diagonal_ganador:
 	j verificar_ganador_no_ganador
 
 set_ganador1:
-	li $v0, 1
+	li $v1, 1
+	j ret
+set_ganador2:
+	li $v1, 2
 	j ret
 
 set_ganador2:
@@ -279,8 +306,8 @@ terminar_juego:
 	la $a0, resultado_msg
 	li $v0, 4
 	syscall
-	beq $v0, 1, mostrar_ganador1
-	beq $v0, 2, mostrar_ganador2
+	beq $v1, 1, mostrar_ganador1
+	beq $v1, 2, mostrar_ganador2
 	la $a0, empate_msg
 	li $v0, 4
 	syscall
@@ -304,15 +331,7 @@ mostrar_ganador2:
 	syscall
 	j end
 
-# Subrutina para mostrar el número de turnos para depuración
-mostrar_turnos:
-	la $a0, turnos
-	li $v0, 4
-	syscall
-	li $v0, 1
-	move $a0, $s3
-	syscall
-	j ret
+
 
 ret:
 	jr $ra
